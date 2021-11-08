@@ -15,8 +15,9 @@ function setUsername(token, username) {
 exports.authenticate = function (hook_name, context, cb) {
   console.log("ep_jwt.authenticate");
   // console.log("ep_jwt.authenticate", context.req);
-  if (context.req.cookies.token) {
-    jwt.verify(context.req.cookies.token, settings.users.jwt.secret, (e, decoded) => {
+  const token = context.req.cookies.token || context.req.headers.token      // allow token to be passed in header...
+  if (token) {
+    jwt.verify(token, settings.users.jwt.secret, (e, decoded) => {
       // console.log("ep_jwt.authenticate", e, decoded);
       if (!e) {
         console.log("ep_jwt.authenticate: successful authentication");
@@ -28,13 +29,13 @@ exports.authenticate = function (hook_name, context, cb) {
         settings.globalUserName = decoded.username;
         return cb([true]);
       } else {
-        console.log("ep_jwt.authenticate: failed authentication no token cookies");
+        console.log("ep_jwt.authenticate: failed authentication no token/cookies");
         context.res.redirect(settings.users.jwt.redirect_url);
         return cb([false]);
       }
     });
   } else {
-    console.log("ep_jwt.authenticate: failed authentication no token cookies");
+    console.log("ep_jwt.authenticate: failed authentication no token/cookies");
     context.res.redirect(settings.users.jwt.redirect_url);
     return cb([false]);
   }
